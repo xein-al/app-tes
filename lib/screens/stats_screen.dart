@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../db/database_helper.dart';
 import '../theme.dart';
+import '../widgets/kotatsu_import_sheet.dart';
+import 'storage_screen.dart';
 
 class StatsScreen extends StatefulWidget {
   static const routeName = '/stats';
@@ -284,6 +286,16 @@ class StatsScreenState extends State<StatsScreen>
           'Profil & Statistik',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.storage_rounded, color: AppTheme.textPrimary),
+            tooltip: 'Pengaturan Penyimpanan',
+            onPressed: () async {
+              await Navigator.pushNamed(context, StorageScreen.routeName);
+              refresh();
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryAccent))
@@ -811,18 +823,79 @@ class StatsScreenState extends State<StatsScreen>
             ],
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _showRestoreDialog,
-              icon: const Icon(Icons.restore_page_rounded, size: 18),
-              label: const Text('Pulihkan Data (Restore)'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryAccent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                elevation: 0,
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _showRestoreDialog,
+                  icon: const Icon(Icons.restore_page_rounded, size: 18),
+                  label: const Text('Pulihkan Data'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.surface2,
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: AppTheme.border),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final imported = await KotatsuImportSheet.show(context);
+                    if (imported != null && imported > 0) {
+                      _showToast('✓ Berhasil mengimpor $imported komik dari Kotatsu!');
+                      refresh();
+                    }
+                  },
+                  icon: const Icon(Icons.import_contacts_rounded, size: 18),
+                  label: const Text('Impor Kotatsu'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(color: AppTheme.border, height: 1),
+          const SizedBox(height: 10),
+          // Direct shortcut to Storage management
+          InkWell(
+            onTap: () async {
+              await Navigator.pushNamed(context, StorageScreen.routeName);
+              refresh();
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              child: Row(
+                children: [
+                  Icon(Icons.storage_rounded, size: 18, color: AppTheme.reading),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Kelola Penyimpanan & Cache',
+                          style: TextStyle(color: AppTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          'Lihat ukuran database, bersihkan thumbnail & cache aplikasi',
+                          style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted, size: 20),
+                ],
               ),
             ),
           ),
