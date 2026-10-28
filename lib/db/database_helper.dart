@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -337,18 +338,82 @@ class DatabaseHelper {
     };
   }
 
-  // ─── Export ───────────────────────────────────────────────────────────────
+  // ─── Export & Backup ───────────────────────────────────────────────────────
 
-  Future<String> exportToJsonFile() async {
+  Future<String> exportToJsonString() async {
     final db = await database;
     final records = await db.query('comics', orderBy: 'title ASC');
     final comics = records.map((m) => Comic.fromMap(m)).toList();
-    final jsonString = Comic.toJson(comics);
 
+    final data = {
+      'version': 1,
+      'appName': 'Manga Tracker',
+      'exportedAt': DateTime.now().millisecondsSinceEpoch,
+      'totalCount': comics.length,
+      'comics': comics.map((c) => c.toMap()).toList(),
+    };
+
+    const encoder = JsonEncoder.withIndent('  ');
+    return encoder.convert(data);
+  }
+
+  Future<String> exportToJsonFile() async {
+    final jsonString = await exportToJsonString();
     final dir = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final file = File('${dir.path}/manga_export_$timestamp.json');
+    final file = File('${dir.path}/manga_backup_$timestamp.json');
     await file.writeAsString(jsonString);
     return file.path;
+  }
+
+  // ─── Import & Restore ───────────────────────────────────────────────────────
+
+  Future<int> importFromJsonString(String jsonString, {bool replaceExisting = false}) async {
+    final dynamic decoded = jsonDecode(jsonString);
+    List<dynamic> comicMaps = [];
+
+    if (decoded is List) {
+      comicMaps = decoded;
+    } else if (decoded is Map<String, dynamic> && decoded['comics'] is List) {
+      comicMaps = decoded['comics'] as List<dynamic>;
+    } else {
+      throw const FormatException('Format data backup tidak valid.');
+    }
+
+    if (comicMaps.isEmpty) return 0;
+
+    final db = await database;
+    int importedCount = 0;
+
+    await db.transaction((txn) async {
+      if (replaceExisting) {
+        await txn.delete('comics');
+      }
+
+      final batch = txn.batch();
+      for (final item in comicMaps) {
+        if (item is Map<String, dynamic>) {
+          try {
+            final comic = Comic.fromMap(item);
+            batch.insert(
+              'comics',
+              comic.toMap(),
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
+            importedCount++;
+          } catch (_) {
+            // Abaikan item yang korup
+          }
+        }
+      }
+      await batch.commit(noResult: true);
+    });
+
+    return importedCount;
+  }
+
+  Future<void> clearAllData() async {
+    final db = await database;
+    await db.delete('comics');
   }
 }

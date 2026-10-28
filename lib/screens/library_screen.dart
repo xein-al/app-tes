@@ -100,11 +100,92 @@ class _LibraryScreenState extends State<LibraryScreen>
 
   Future<void> _incrementChapter(Comic comic) async {
     HapticFeedback.lightImpact();
+    final prevChapter = comic.currentChapter;
+    final newChapter = prevChapter + 1;
+    final isCompleted = comic.totalChapters != null &&
+        comic.totalChapters! > 0 &&
+        newChapter >= comic.totalChapters!;
+
+    // Optimistic UI update for zero lag
+    final index = _comics.indexWhere((c) => c.id == comic.id);
+    if (index != -1) {
+      setState(() {
+        _comics[index] = _comics[index].copyWith(
+          currentChapter: newChapter,
+          status: isCompleted ? 'completed' : _comics[index].status,
+        );
+      });
+    }
+
     final updated = await DatabaseHelper.instance.incrementChapter(comic.id);
     if (updated != null && mounted) {
-      _showToast('${comic.title} Ch.${_formatChapter(updated.currentChapter)} ✓');
-      _loadData();
+      _showUndoToast(
+        message: '${comic.title} Ch. ${_formatChapter(newChapter)} ✓',
+        onUndo: () async {
+          await DatabaseHelper.instance.setChapter(comic.id, prevChapter);
+          if (comic.status != 'completed') {
+            await DatabaseHelper.instance.updateComic(comic);
+          }
+          _loadData();
+        },
+      );
+      final counts = await DatabaseHelper.instance.getStatusCounts();
+      if (mounted) setState(() => _counts = counts);
     }
+  }
+
+  Future<void> _decrementChapter(Comic comic) async {
+    if (comic.currentChapter <= 0) return;
+    HapticFeedback.lightImpact();
+    final prevChapter = comic.currentChapter;
+    final newChapter = (prevChapter - 1).clamp(0.0, double.infinity);
+
+    // Optimistic UI update
+    final index = _comics.indexWhere((c) => c.id == comic.id);
+    if (index != -1) {
+      setState(() {
+        _comics[index] = _comics[index].copyWith(
+          currentChapter: newChapter,
+        );
+      });
+    }
+
+    final updated = await DatabaseHelper.instance.decrementChapter(comic.id);
+    if (updated != null && mounted) {
+      _showUndoToast(
+        message: '${comic.title} Ch. ${_formatChapter(newChapter)}',
+        onUndo: () async {
+          await DatabaseHelper.instance.setChapter(comic.id, prevChapter);
+          _loadData();
+        },
+      );
+      final counts = await DatabaseHelper.instance.getStatusCounts();
+      if (mounted) setState(() => _counts = counts);
+    }
+  }
+
+  void _showUndoToast({required String message, required VoidCallback onUndo}) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
+        ),
+        action: SnackBarAction(
+          label: 'URUNGKAN',
+          textColor: AppTheme.primaryAccent,
+          onPressed: onUndo,
+        ),
+        backgroundColor: AppTheme.surface2,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppTheme.border),
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<void> _openManualChapterDialog(Comic comic) async {
@@ -856,32 +937,31 @@ class _LibraryScreenState extends State<LibraryScreen>
               ),
             ),
             const SizedBox(width: 8),
-            // +1 Button
+            // Chapter Control Buttons
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 16),
-                GestureDetector(
+                // -1 Button (small)
+                _ChapterMiniButton(
+                  label: '−1',
+                  enabled: comic.currentChapter > 0,
+                  onTap: () => _decrementChapter(comic),
+                ),
+                const SizedBox(height: 6),
+                // +1 Button (main)
+                _IncrementButton(
                   onTap: () => _incrementChapter(comic),
-                  onDoubleTap: () => _openManualChapterDialog(comic),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface2,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        '+1',
-                        style: TextStyle(
-                          color: AppTheme.primaryAccent,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
+                  onLongPress: () => _openManualChapterDialog(comic),
+                ),
+                const SizedBox(height: 4),
+                // Hint text
+                const Text(
+                  'tahan\natur',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: AppTheme.textMuted,
+                    height: 1.2,
                   ),
                 ),
               ],
@@ -966,29 +1046,24 @@ class _LibraryScreenState extends State<LibraryScreen>
                       ),
                     ),
                   ),
-                  // +1 Button bottom-right
+                  // +1 & -1 Buttons bottom-right
                   Positioned(
                     bottom: 6,
                     right: 6,
-                    child: GestureDetector(
-                      onTap: () => _incrementChapter(comic),
-                      onDoubleTap: () => _openManualChapterDialog(comic),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surface2,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppTheme.border),
+                    child: Row(
+                      children: [
+                        _ChapterMiniButton(
+                          label: '−',
+                          enabled: comic.currentChapter > 0,
+                          onTap: () => _decrementChapter(comic),
                         ),
-                        child: const Text(
-                          '+1',
-                          style: TextStyle(
-                            color: AppTheme.primaryAccent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
+                        const SizedBox(width: 4),
+                        _IncrementButton(
+                          mini: true,
+                          onTap: () => _incrementChapter(comic),
+                          onLongPress: () => _openManualChapterDialog(comic),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ],
@@ -1229,6 +1304,145 @@ class _ShimmerCardState extends State<_ShimmerCard>
             AppTheme.surface2,
             AppTheme.surface1,
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Quick Increment & Decrement Buttons ──────────────────────────────────────
+
+class _IncrementButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final bool mini;
+
+  const _IncrementButton({
+    required this.onTap,
+    this.onLongPress,
+    this.mini = false,
+  });
+
+  @override
+  State<_IncrementButton> createState() => _IncrementButtonState();
+}
+
+class _IncrementButtonState extends State<_IncrementButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 180),
+    );
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.82), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 0.82, end: 1.15), weight: 35),
+      TweenSequenceItem(tween: Tween(begin: 1.15, end: 1.0), weight: 25),
+    ]).animate(CurvedAnimation(parent: _anim, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    _anim.forward(from: 0.0);
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = widget.mini ? 32.0 : 42.0;
+
+    return GestureDetector(
+      onTap: _handleTap,
+      onLongPress: widget.onLongPress,
+      child: AnimatedBuilder(
+        animation: _scale,
+        builder: (context, child) => Transform.scale(
+          scale: _scale.value,
+          child: child,
+        ),
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFFF5757),
+                Color(0xFFE62E2E),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(widget.mini ? 8 : 12),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryAccent.withOpacity(0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              '+1',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: widget.mini ? 11 : 14,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChapterMiniButton extends StatelessWidget {
+  final String label;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _ChapterMiniButton({
+    required this.label,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Opacity(
+        opacity: enabled ? 1.0 : 0.35,
+        child: Container(
+          width: 32,
+          height: 24,
+          decoration: BoxDecoration(
+            color: AppTheme.surface2,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppTheme.border),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
       ),
     );

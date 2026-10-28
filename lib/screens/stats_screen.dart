@@ -70,48 +70,202 @@ class StatsScreenState extends State<StatsScreen>
     }
   }
 
-  Future<void> _exportJson() async {
+  Future<void> _copyJsonToClipboard() async {
+    HapticFeedback.lightImpact();
+    try {
+      final jsonString = await DatabaseHelper.instance.exportToJsonString();
+      await Clipboard.setData(ClipboardData(text: jsonString));
+      if (mounted) {
+        _showToast('✓ Data backup JSON berhasil disalin ke clipboard!');
+      }
+    } catch (e) {
+      if (mounted) _showToast('Gagal menyalin backup: $e');
+    }
+  }
+
+  Future<void> _exportJsonFile() async {
     HapticFeedback.lightImpact();
     setState(() => _isExporting = true);
     try {
       final filePath = await DatabaseHelper.instance.exportToJsonFile();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, color: AppTheme.completed, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Data berhasil diekspor:\n$filePath',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-            duration: const Duration(seconds: 4),
-            backgroundColor: AppTheme.surface2,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: const BorderSide(color: AppTheme.border),
-            ),
-          ),
-        );
+        _showToast('✓ File backup tersimpan:\n$filePath');
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal mengekspor data: $e'),
-            backgroundColor: AppTheme.surface2,
-          ),
-        );
-      }
+      if (mounted) _showToast('Gagal mengekspor file: $e');
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
+  }
+
+  Future<void> _showRestoreDialog() async {
+    final textController = TextEditingController();
+    bool replaceMode = false;
+
+    // Coba baca clipboard dulu jika ada data JSON
+    try {
+      final clipData = await Clipboard.getData('text/plain');
+      if (clipData?.text != null && clipData!.text!.contains('comics')) {
+        textController.text = clipData.text!;
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surface1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryAccent.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.settings_backup_restore_rounded,
+                            color: AppTheme.primaryAccent, size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Pulihkan Data (Restore)',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Tempelkan (paste) teks JSON backup komik kamu di bawah ini:',
+                    style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: textController,
+                    maxLines: 6,
+                    style: const TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 12,
+                      fontFamily: 'monospace',
+                    ),
+                    decoration: InputDecoration(
+                      hintText: '{\n  "version": 1,\n  "comics": [...]\n}',
+                      hintStyle: const TextStyle(color: AppTheme.textMuted),
+                      filled: true,
+                      fillColor: AppTheme.surface2,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppTheme.border),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.content_paste_rounded, color: AppTheme.primaryAccent),
+                        onPressed: () async {
+                          final data = await Clipboard.getData('text/plain');
+                          if (data?.text != null) {
+                            textController.text = data!.text!;
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Switch replace mode
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: replaceMode,
+                    activeColor: AppTheme.primaryAccent,
+                    onChanged: (val) => setModalState(() => replaceMode = val),
+                    title: const Text(
+                      'Ganti Semua Data (Replace)',
+                      style: TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      replaceMode
+                          ? 'Perhatian: Semua data saat ini akan dihapus & diganti.'
+                          : 'Data baru akan digabungkan (Merge) dengan yang lama.',
+                      style: TextStyle(
+                        color: replaceMode ? AppTheme.primaryAccent : AppTheme.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () async {
+                      final raw = textController.text.trim();
+                      if (raw.isEmpty) {
+                        _showToast('Teks backup tidak boleh kosong.');
+                        return;
+                      }
+                      try {
+                        final count = await DatabaseHelper.instance.importFromJsonString(
+                          raw,
+                          replaceExisting: replaceMode,
+                        );
+                        if (mounted) {
+                          Navigator.pop(ctx);
+                          _showToast('✓ Berhasil memulihkan $count judul komik!');
+                          refresh();
+                        }
+                      } catch (e) {
+                        _showToast('Gagal memulihkan: format JSON tidak valid.');
+                      }
+                    },
+                    child: const Text('Mulai Pulihkan Data', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showToast(String message) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: AppTheme.surface2,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppTheme.border),
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   Animation<double> _createStaggerAnimation(double begin, double end) {
@@ -585,27 +739,94 @@ class StatsScreenState extends State<StatsScreen>
   }
 
   Widget _buildExportButton() {
-    return SizedBox(
-      height: 48,
-      child: ElevatedButton.icon(
-        onPressed: _isExporting ? null : _exportJson,
-        icon: _isExporting
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-              )
-            : const Icon(Icons.download_rounded, color: Colors.white, size: 20),
-        label: Text(
-          _isExporting ? 'Mengekspor...' : 'Ekspor Data ke JSON',
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.surface2,
-          side: const BorderSide(color: AppTheme.border),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
-        ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface1,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.cloud_sync_outlined, color: AppTheme.primaryAccent, size: 20),
+              SizedBox(width: 8),
+              Text(
+                'BACKUP & RESTORE DATA',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Simpan data komik ke file JSON atau salin langsung ke clipboard untuk dipindahkan ke HP lain.',
+            style: TextStyle(fontSize: 12, color: AppTheme.textMuted, height: 1.4),
+          ),
+          const SizedBox(height: 16),
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _copyJsonToClipboard,
+                  icon: const Icon(Icons.copy_rounded, size: 16),
+                  label: const Text('Salin JSON'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.textPrimary,
+                    side: const BorderSide(color: AppTheme.border),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _isExporting ? null : _exportJsonFile,
+                  icon: _isExporting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Icon(Icons.download_rounded, size: 16),
+                  label: const Text('Simpan File'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.surface2,
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: AppTheme.border),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _showRestoreDialog,
+              icon: const Icon(Icons.restore_page_rounded, size: 18),
+              label: const Text('Pulihkan Data (Restore)'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                elevation: 0,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
