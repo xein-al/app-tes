@@ -420,6 +420,17 @@ class DatabaseHelper {
     return importedCount;
   }
 
+  Future<int> importFromJsonFile(String filePath,
+      {bool replaceExisting = false}) async {
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw Exception('File tidak ditemukan: $filePath');
+    }
+    final jsonString = await file.readAsString();
+    return await importFromJsonString(jsonString,
+        replaceExisting: replaceExisting);
+  }
+
   Future<void> clearAllData() async {
     final db = await database;
     await db.delete('comics');
