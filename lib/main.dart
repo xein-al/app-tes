@@ -5,6 +5,7 @@ import 'screens/library_screen.dart';
 import 'screens/detail_screen.dart';
 import 'screens/stats_screen.dart';
 import 'screens/storage_screen.dart';
+import 'screens/backup_management_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +34,8 @@ class MangaTrackerApp extends StatelessWidget {
         DetailScreen.routeName: (context) => const DetailScreen(),
         StatsScreen.routeName: (context) => const StatsScreen(),
         StorageScreen.routeName: (context) => const StorageScreen(),
+        BackupManagementScreen.routeName: (context) =>
+            const BackupManagementScreen(),
       },
     );
   }

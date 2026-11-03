@@ -985,6 +985,26 @@ class StatsScreenState extends State<StatsScreen>
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          // Tombol ke Backup Management (Kotatsu-style)
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                await Navigator.pushNamed(context, '/backup-management');
+                refresh();
+              },
+              icon: const Icon(Icons.backup_rounded, size: 18),
+              label: const Text('Backup Management (ZIP)'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.primaryAccent,
+                side: const BorderSide(color: AppTheme.primaryAccent),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
           const SizedBox(height: 14),
           const Divider(color: AppTheme.border, height: 1),
           const SizedBox(height: 10),
