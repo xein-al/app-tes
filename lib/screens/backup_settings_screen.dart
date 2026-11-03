@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
-import '../backups/periodic_backup_service.dart';
+// import '../backups/periodic_backup_service.dart'; // Temporary disabled
 
 /// Screen untuk settings auto backup.
 class BackupSettingsScreen extends StatefulWidget {
@@ -44,12 +44,14 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
     await prefs.setBool(_keyAutoBackupEnabled, enabled);
 
     if (enabled) {
-      await PeriodicBackupService.scheduleBackup(_intervalDays);
+      // TODO: Re-enable when workmanager is fixed
+      // await PeriodicBackupService.scheduleBackup(_intervalDays);
       if (mounted) {
-        _showSnackbar('✓ Auto backup diaktifkan (setiap $_intervalDays hari)');
+        _showSnackbar('⚠️ Auto backup akan diaktifkan di update berikutnya');
       }
     } else {
-      await PeriodicBackupService.cancelBackup();
+      // TODO: Re-enable when workmanager is fixed
+      // await PeriodicBackupService.cancelBackup();
       if (mounted) {
         _showSnackbar('Auto backup dinonaktifkan');
       }
@@ -64,7 +66,8 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
     setState(() => _intervalDays = days);
 
     if (_autoBackupEnabled) {
-      await PeriodicBackupService.scheduleBackup(days);
+      // TODO: Re-enable when workmanager is fixed
+      // await PeriodicBackupService.scheduleBackup(days);
       _showSnackbar('✓ Interval backup diubah ke $days hari');
     }
   }
@@ -205,7 +208,7 @@ class _BackupSettingsScreenState extends State<BackupSettingsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Backup otomatis berjalan di background. File backup tersimpan di folder aplikasi dan tidak memerlukan koneksi internet.',
+                  '⚠️ Auto backup sementara dinonaktifkan karena kompatibilitas Kotlin. Fitur manual backup tetap berfungsi normal. Update akan datang segera!',
                   style: TextStyle(
                     color: AppTheme.textPrimary.withOpacity(0.8),
                     fontSize: 12,
