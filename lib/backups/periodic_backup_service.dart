@@ -59,7 +59,7 @@ void callbackDispatcher() {
         final repo = BackupRepository();
         await repo.createBackup(
           sections: {
-            BackupSection.index,
+            BackupSection.metadata,
             BackupSection.comics,
           },
           onProgress: null, // No progress callback di background

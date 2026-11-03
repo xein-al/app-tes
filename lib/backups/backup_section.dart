@@ -1,7 +1,7 @@
 /// Sections yang bisa di-backup/restore secara terpisah.
 /// Terinspirasi dari Kotatsu-Redo backup system.
 enum BackupSection {
-  index('index.json', 'Index'),
+  metadata('index.json', 'Index'),
   comics('comics.json', 'Data Komik'),
   settings('settings.json', 'Pengaturan');
 

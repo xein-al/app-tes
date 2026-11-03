@@ -30,7 +30,7 @@ class BackupRepository {
     final totalSteps = sections.length + 1; // +1 untuk index
 
     // 1. Buat index.json
-    if (sections.contains(BackupSection.index) || sections.length > 1) {
+    if (sections.contains(BackupSection.metadata) || sections.length > 1) {
       onProgress?.call(currentStep / totalSteps, 'Membuat index...');
 
       final comics = await DatabaseHelper.instance.getAllComics();
@@ -44,7 +44,8 @@ class BackupRepository {
 
       final indexJson = index.toJson();
       archive.addFile(
-        ArchiveFile(BackupSection.index.fileName, indexJson.length, indexJson),
+        ArchiveFile(
+            BackupSection.metadata.fileName, indexJson.length, indexJson),
       );
       currentStep++;
     }
@@ -155,7 +156,7 @@ class BackupRepository {
           }
           break;
 
-        case BackupSection.index:
+        case BackupSection.metadata:
           // Index tidak perlu di-restore
           break;
       }
@@ -237,7 +238,7 @@ class BackupRepository {
     final sections = <BackupSection>[];
     for (final file in archive) {
       final section = BackupSection.fromFileName(file.name);
-      if (section != null && section != BackupSection.index) {
+      if (section != null && section != BackupSection.metadata) {
         sections.add(section);
       }
     }

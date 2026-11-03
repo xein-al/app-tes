@@ -167,7 +167,7 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
               ),
               const SizedBox(height: 16),
               ...sections
-                  .where((s) => s != BackupSection.index)
+                  .where((s) => s != BackupSection.metadata)
                   .map((section) => CheckboxListTile(
                         title: Text(section.displayName),
                         value: selected.contains(section),
