@@ -316,6 +316,13 @@ class _BackupManagementScreenState extends State<BackupManagementScreen> {
         title: const Text('Backup & Restore'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.settings_rounded),
+            onPressed: _isProcessing
+                ? null
+                : () => Navigator.pushNamed(context, '/backup-settings'),
+            tooltip: 'Auto Backup Settings',
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: _isProcessing ? null : _loadBackups,
           ),
