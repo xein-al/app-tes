@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../db/database_helper.dart';
 import 'backup_section.dart';
 import 'backup_index.dart';
@@ -60,11 +61,18 @@ class BackupRepository {
       currentStep++;
     }
 
-    // 3. Backup settings.json (placeholder untuk future)
+    // 3. Backup settings.json
     if (sections.contains(BackupSection.settings)) {
       onProgress?.call(currentStep / totalSteps, 'Backup pengaturan...');
 
-      final settings = {'version': 1, 'placeholder': true};
+      final prefs = await SharedPreferences.getInstance();
+      final settings = {
+        'version': 1,
+        'autoBackupEnabled': prefs.getBool('auto_backup_enabled') ?? false,
+        'backupInterval': prefs.getInt('backup_interval_days') ?? 7,
+        'keepBackups': prefs.getInt('keep_backups_count') ?? 5,
+        'exportedAt': DateTime.now().millisecondsSinceEpoch,
+      };
       final settingsJson = jsonEncode(settings);
       archive.addFile(
         ArchiveFile(
@@ -130,7 +138,21 @@ class BackupRepository {
           break;
 
         case BackupSection.settings:
-          // TODO: Implement settings restore
+          final settingsMap = jsonDecode(jsonString) as Map<String, dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+
+          if (settingsMap['autoBackupEnabled'] != null) {
+            await prefs.setBool('auto_backup_enabled',
+                settingsMap['autoBackupEnabled'] as bool);
+          }
+          if (settingsMap['backupInterval'] != null) {
+            await prefs.setInt(
+                'backup_interval_days', settingsMap['backupInterval'] as int);
+          }
+          if (settingsMap['keepBackups'] != null) {
+            await prefs.setInt(
+                'keep_backups_count', settingsMap['keepBackups'] as int);
+          }
           break;
 
         case BackupSection.index:
