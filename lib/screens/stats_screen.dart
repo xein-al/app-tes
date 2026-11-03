@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import '../db/database_helper.dart';
 import '../theme.dart';
 import '../widgets/kotatsu_import_sheet.dart';
@@ -100,6 +101,72 @@ class StatsScreenState extends State<StatsScreen>
     }
   }
 
+  Future<void> _importFromFile() async {
+    HapticFeedback.lightImpact();
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        dialogTitle: 'Pilih File Backup JSON',
+      );
+
+      if (result == null || result.files.single.path == null) return;
+
+      final filePath = result.files.single.path!;
+
+      if (!mounted) return;
+
+      // Tanya mode: replace atau merge
+      final replaceMode = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppTheme.surface1,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Mode Import'),
+          content: const Text(
+            'Pilih cara mengimpor data:\n\n'
+            '• Gabung: Tambahkan ke data yang ada\n'
+            '• Ganti: Hapus data lama dan ganti dengan data baru',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Gabung'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryAccent,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Ganti Semua'),
+            ),
+          ],
+        ),
+      );
+
+      if (replaceMode == null || !mounted) return;
+
+      setState(() => _isExporting = true);
+      final count = await DatabaseHelper.instance.importFromJsonFile(
+        filePath,
+        replaceExisting: replaceMode,
+      );
+
+      if (mounted) {
+        _showToast('✓ Berhasil mengimpor $count komik dari file!');
+        refresh();
+      }
+    } catch (e) {
+      if (mounted) _showToast('Gagal mengimpor file: $e');
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
   Future<void> _showRestoreDialog() async {
     final textController = TextEditingController();
     bool replaceMode = false;
@@ -160,7 +227,8 @@ class StatsScreenState extends State<StatsScreen>
                   const SizedBox(height: 12),
                   const Text(
                     'Tempelkan (paste) teks JSON backup komik kamu di bawah ini:',
-                    style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                    style:
+                        TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -181,7 +249,8 @@ class StatsScreenState extends State<StatsScreen>
                         borderSide: const BorderSide(color: AppTheme.border),
                       ),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.content_paste_rounded, color: AppTheme.primaryAccent),
+                        icon: const Icon(Icons.content_paste_rounded,
+                            color: AppTheme.primaryAccent),
                         onPressed: () async {
                           final data = await Clipboard.getData('text/plain');
                           if (data?.text != null) {
@@ -200,14 +269,19 @@ class StatsScreenState extends State<StatsScreen>
                     onChanged: (val) => setModalState(() => replaceMode = val),
                     title: const Text(
                       'Ganti Semua Data (Replace)',
-                      style: TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
                       replaceMode
                           ? 'Perhatian: Semua data saat ini akan dihapus & diganti.'
                           : 'Data baru akan digabungkan (Merge) dengan yang lama.',
                       style: TextStyle(
-                        color: replaceMode ? AppTheme.primaryAccent : AppTheme.textMuted,
+                        color: replaceMode
+                            ? AppTheme.primaryAccent
+                            : AppTheme.textMuted,
                         fontSize: 12,
                       ),
                     ),
@@ -218,7 +292,8 @@ class StatsScreenState extends State<StatsScreen>
                       backgroundColor: AppTheme.primaryAccent,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () async {
                       final raw = textController.text.trim();
@@ -227,20 +302,24 @@ class StatsScreenState extends State<StatsScreen>
                         return;
                       }
                       try {
-                        final count = await DatabaseHelper.instance.importFromJsonString(
+                        final count =
+                            await DatabaseHelper.instance.importFromJsonString(
                           raw,
                           replaceExisting: replaceMode,
                         );
                         if (mounted) {
                           Navigator.pop(ctx);
-                          _showToast('✓ Berhasil memulihkan $count judul komik!');
+                          _showToast(
+                              '✓ Berhasil memulihkan $count judul komik!');
                           refresh();
                         }
                       } catch (e) {
-                        _showToast('Gagal memulihkan: format JSON tidak valid.');
+                        _showToast(
+                            'Gagal memulihkan: format JSON tidak valid.');
                       }
                     },
-                    child: const Text('Mulai Pulihkan Data', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text('Mulai Pulihkan Data',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -257,7 +336,8 @@ class StatsScreenState extends State<StatsScreen>
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+              color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
         ),
         backgroundColor: AppTheme.surface2,
         behavior: SnackBarBehavior.floating,
@@ -288,7 +368,8 @@ class StatsScreenState extends State<StatsScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.storage_rounded, color: AppTheme.textPrimary),
+            icon:
+                const Icon(Icons.storage_rounded, color: AppTheme.textPrimary),
             tooltip: 'Pengaturan Penyimpanan',
             onPressed: () async {
               await Navigator.pushNamed(context, StorageScreen.routeName);
@@ -298,7 +379,8 @@ class StatsScreenState extends State<StatsScreen>
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryAccent))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryAccent))
           : RefreshIndicator(
               color: AppTheme.primaryAccent,
               backgroundColor: AppTheme.surface2,
@@ -419,7 +501,8 @@ class StatsScreenState extends State<StatsScreen>
                 AnimatedBuilder(
                   animation: _countAnimation,
                   builder: (context, _) {
-                    final streak = (_readingStreak * _countAnimation.value).toInt();
+                    final streak =
+                        (_readingStreak * _countAnimation.value).toInt();
                     return Text(
                       '$streak Hari Berturut-turut',
                       style: const TextStyle(
@@ -445,7 +528,9 @@ class StatsScreenState extends State<StatsScreen>
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: _readingStreak > 0 ? AppTheme.primaryAccent : AppTheme.textMuted,
+                color: _readingStreak > 0
+                    ? AppTheme.primaryAccent
+                    : AppTheme.textMuted,
               ),
             ),
           ),
@@ -604,25 +689,31 @@ class StatsScreenState extends State<StatsScreen>
                   color: AppTheme.textSecondary,
                 ),
               ),
-              Icon(Icons.donut_large_rounded, size: 16, color: AppTheme.textMuted),
+              Icon(Icons.donut_large_rounded,
+                  size: 16, color: AppTheme.textMuted),
             ],
           ),
           const SizedBox(height: 16),
-          _buildAnimatedBarRow('Manhwa', manhwaCount, manhwaCount / total, AppTheme.reading),
+          _buildAnimatedBarRow(
+              'Manhwa', manhwaCount, manhwaCount / total, AppTheme.reading),
           const SizedBox(height: 12),
-          _buildAnimatedBarRow('Manga', mangaCount, mangaCount / total, AppTheme.completed),
+          _buildAnimatedBarRow(
+              'Manga', mangaCount, mangaCount / total, AppTheme.completed),
           const SizedBox(height: 12),
-          _buildAnimatedBarRow('Manhua', manhuaCount, manhuaCount / total, AppTheme.planToRead),
+          _buildAnimatedBarRow(
+              'Manhua', manhuaCount, manhuaCount / total, AppTheme.planToRead),
         ],
       ),
     );
   }
 
-  Widget _buildAnimatedBarRow(String label, int count, double fraction, Color barColor) {
+  Widget _buildAnimatedBarRow(
+      String label, int count, double fraction, Color barColor) {
     return AnimatedBuilder(
       animation: _countAnimation,
       builder: (context, _) {
-        final animatedFraction = (fraction * _countAnimation.value).clamp(0.0, 1.0);
+        final animatedFraction =
+            (fraction * _countAnimation.value).clamp(0.0, 1.0);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -708,17 +799,20 @@ class StatsScreenState extends State<StatsScreen>
                   Container(
                     width: 9,
                     height: 9,
-                    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                    decoration:
+                        BoxDecoration(color: color, shape: BoxShape.circle),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       label,
-                      style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                      style: const TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 13),
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     margin: const EdgeInsets.only(right: 8),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.12),
@@ -763,7 +857,8 @@ class StatsScreenState extends State<StatsScreen>
         children: [
           const Row(
             children: [
-              Icon(Icons.cloud_sync_outlined, color: AppTheme.primaryAccent, size: 20),
+              Icon(Icons.cloud_sync_outlined,
+                  color: AppTheme.primaryAccent, size: 20),
               SizedBox(width: 8),
               Text(
                 'BACKUP & RESTORE DATA',
@@ -778,8 +873,9 @@ class StatsScreenState extends State<StatsScreen>
           ),
           const SizedBox(height: 8),
           const Text(
-            'Simpan data komik ke file JSON atau salin langsung ke clipboard untuk dipindahkan ke HP lain.',
-            style: TextStyle(fontSize: 12, color: AppTheme.textMuted, height: 1.4),
+            'Simpan data komik ke file JSON atau salin ke clipboard. Import kembali dari file atau paste JSON.',
+            style:
+                TextStyle(fontSize: 12, color: AppTheme.textMuted, height: 1.4),
           ),
           const SizedBox(height: 16),
           // Action Buttons
@@ -793,7 +889,8 @@ class StatsScreenState extends State<StatsScreen>
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.textPrimary,
                     side: const BorderSide(color: AppTheme.border),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -806,7 +903,8 @@ class StatsScreenState extends State<StatsScreen>
                       ? const SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
                         )
                       : const Icon(Icons.download_rounded, size: 16),
                   label: const Text('Simpan File'),
@@ -814,7 +912,8 @@ class StatsScreenState extends State<StatsScreen>
                     backgroundColor: AppTheme.surface2,
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: AppTheme.border),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     elevation: 0,
                   ),
@@ -828,13 +927,14 @@ class StatsScreenState extends State<StatsScreen>
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: _showRestoreDialog,
-                  icon: const Icon(Icons.restore_page_rounded, size: 18),
-                  label: const Text('Pulihkan Data'),
+                  icon: const Icon(Icons.content_paste_rounded, size: 18),
+                  label: const Text('Dari Clipboard'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.surface2,
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: AppTheme.border),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     elevation: 0,
                   ),
@@ -843,10 +943,31 @@ class StatsScreenState extends State<StatsScreen>
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
+                  onPressed: _isExporting ? null : _importFromFile,
+                  icon: const Icon(Icons.upload_file_rounded, size: 18),
+                  label: const Text('Dari File'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
                   onPressed: () async {
                     final imported = await KotatsuImportSheet.show(context);
                     if (imported != null && imported > 0) {
-                      _showToast('✓ Berhasil mengimpor $imported komik dari Kotatsu!');
+                      _showToast(
+                          '✓ Berhasil mengimpor $imported komik dari Kotatsu!');
                       refresh();
                     }
                   },
@@ -855,7 +976,8 @@ class StatsScreenState extends State<StatsScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryAccent,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     elevation: 0,
                   ),
@@ -877,7 +999,8 @@ class StatsScreenState extends State<StatsScreen>
               padding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
               child: Row(
                 children: [
-                  Icon(Icons.storage_rounded, size: 18, color: AppTheme.reading),
+                  Icon(Icons.storage_rounded,
+                      size: 18, color: AppTheme.reading),
                   SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -885,16 +1008,21 @@ class StatsScreenState extends State<StatsScreen>
                       children: [
                         Text(
                           'Kelola Penyimpanan & Cache',
-                          style: TextStyle(color: AppTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600),
                         ),
                         Text(
                           'Lihat ukuran database, bersihkan thumbnail & cache aplikasi',
-                          style: TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                          style: TextStyle(
+                              color: AppTheme.textMuted, fontSize: 11),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right_rounded, color: AppTheme.textMuted, size: 20),
+                  Icon(Icons.chevron_right_rounded,
+                      color: AppTheme.textMuted, size: 20),
                 ],
               ),
             ),

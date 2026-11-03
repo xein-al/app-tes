@@ -58,7 +58,8 @@ class _StorageScreenState extends State<StorageScreen>
     int totalSize = 0;
     if (await dir.exists()) {
       try {
-        await for (final entity in dir.list(recursive: true, followLinks: false)) {
+        await for (final entity
+            in dir.list(recursive: true, followLinks: false)) {
           if (entity is File) {
             totalSize += await entity.length();
           }
@@ -92,7 +93,8 @@ class _StorageScreenState extends State<StorageScreen>
     int total = 0;
     if (!await tempDir.exists()) return 0;
     try {
-      await for (final entity in tempDir.list(recursive: true, followLinks: false)) {
+      await for (final entity
+          in tempDir.list(recursive: true, followLinks: false)) {
         if (entity is File) {
           final path = entity.path.toLowerCase();
           if (path.contains('thumb') ||
@@ -151,7 +153,8 @@ class _StorageScreenState extends State<StorageScreen>
         _availableBytes = availableBytes;
         _dbPath = dbPath;
         _totalComics = counts['all'] ?? 0;
-        _totalChapters = (stats['totalChaptersRead'] as num?)?.toDouble() ?? 0.0;
+        _totalChapters =
+            (stats['totalChaptersRead'] as num?)?.toDouble() ?? 0.0;
         _isLoading = false;
       });
       _barAnimController.forward(from: 0.0);
@@ -170,7 +173,8 @@ class _StorageScreenState extends State<StorageScreen>
       PaintingBinding.instance.imageCache.clearLiveImages();
       final tempDir = await getTemporaryDirectory();
       if (await tempDir.exists()) {
-        await for (final entity in tempDir.list(recursive: false, followLinks: false)) {
+        await for (final entity
+            in tempDir.list(recursive: false, followLinks: false)) {
           try {
             if (entity is File) {
               freedBytes += await entity.length();
@@ -184,7 +188,8 @@ class _StorageScreenState extends State<StorageScreen>
       }
       await _loadStorageData();
       if (!mounted) return;
-      _showSnackbar('Cache dibersihkan (${_formatBytes(freedBytes)} dibebaskan)');
+      _showSnackbar(
+          'Cache dibersihkan (${_formatBytes(freedBytes)} dibebaskan)');
     } catch (e) {
       if (!mounted) return;
       _showSnackbar('Gagal membersihkan cache: $e', isError: true);
@@ -201,12 +206,16 @@ class _StorageScreenState extends State<StorageScreen>
       PaintingBinding.instance.imageCache.clearLiveImages();
       final tempDir = await getTemporaryDirectory();
       if (await tempDir.exists()) {
-        await for (final entity in tempDir.list(recursive: true, followLinks: false)) {
+        await for (final entity
+            in tempDir.list(recursive: true, followLinks: false)) {
           if (entity is File) {
             final path = entity.path.toLowerCase();
-            if (path.contains('thumb') || path.contains('image') ||
-                path.endsWith('.jpg') || path.endsWith('.jpeg') ||
-                path.endsWith('.png') || path.endsWith('.webp')) {
+            if (path.contains('thumb') ||
+                path.contains('image') ||
+                path.endsWith('.jpg') ||
+                path.endsWith('.jpeg') ||
+                path.endsWith('.png') ||
+                path.endsWith('.webp')) {
               try {
                 freedBytes += await entity.length();
                 await entity.delete();
@@ -217,7 +226,8 @@ class _StorageScreenState extends State<StorageScreen>
       }
       await _loadStorageData();
       if (!mounted) return;
-      _showSnackbar('Thumbnail dibersihkan (${_formatBytes(freedBytes)} dibebaskan)');
+      _showSnackbar(
+          'Thumbnail dibersihkan (${_formatBytes(freedBytes)} dibebaskan)');
     } catch (e) {
       if (!mounted) return;
       _showSnackbar('Gagal membersihkan thumbnail: $e', isError: true);
@@ -274,27 +284,32 @@ class _StorageScreenState extends State<StorageScreen>
           side: const BorderSide(color: AppTheme.border),
         ),
         title: const Row(children: [
-          Icon(Icons.cleaning_services_rounded, color: AppTheme.planToRead, size: 22),
+          Icon(Icons.cleaning_services_rounded,
+              color: AppTheme.planToRead, size: 22),
           SizedBox(width: 10),
           Text('Hapus Cache Aplikasi?'),
         ]),
         content: Text(
           'File sementara dan cache (${_formatBytes(_cacheBytes)}) akan dibersihkan.\nData komik tidak terpengaruh.',
-          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
+          style: const TextStyle(
+              color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal', style: TextStyle(color: AppTheme.textSecondary)),
+            child: const Text('Batal',
+                style: TextStyle(color: AppTheme.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.planToRead,
               foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus Cache', style: TextStyle(fontWeight: FontWeight.w600)),
+            child: const Text('Hapus Cache',
+                style: TextStyle(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -318,21 +333,25 @@ class _StorageScreenState extends State<StorageScreen>
         ]),
         content: Text(
           'Cache cover komik (${_formatBytes(_thumbnailBytes)}) dihapus.\nGambar akan diunduh ulang saat dibuka.',
-          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
+          style: const TextStyle(
+              color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal', style: TextStyle(color: AppTheme.textSecondary)),
+            child: const Text('Batal',
+                style: TextStyle(color: AppTheme.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.reading,
               foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus Thumbnail', style: TextStyle(fontWeight: FontWeight.w600)),
+            child: const Text('Hapus Thumbnail',
+                style: TextStyle(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -350,12 +369,14 @@ class _StorageScreenState extends State<StorageScreen>
           side: const BorderSide(color: AppTheme.primaryAccent, width: 1.5),
         ),
         title: const Row(children: [
-          Icon(Icons.warning_amber_rounded, color: AppTheme.primaryAccent, size: 24),
+          Icon(Icons.warning_amber_rounded,
+              color: AppTheme.primaryAccent, size: 24),
           SizedBox(width: 10),
           Expanded(
             child: Text(
               'Hapus Seluruh Data?',
-              style: TextStyle(color: AppTheme.primaryAccent, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: AppTheme.primaryAccent, fontWeight: FontWeight.bold),
             ),
           ),
         ]),
@@ -368,33 +389,45 @@ class _StorageScreenState extends State<StorageScreen>
               decoration: BoxDecoration(
                 color: AppTheme.primaryAccent.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppTheme.primaryAccent.withOpacity(0.3)),
+                border:
+                    Border.all(color: AppTheme.primaryAccent.withOpacity(0.3)),
               ),
               child: const Text(
                 'PERINGATAN: Tindakan ini permanen!',
-                style: TextStyle(color: AppTheme.primaryAccent, fontWeight: FontWeight.bold, fontSize: 12),
+                style: TextStyle(
+                    color: AppTheme.primaryAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12),
               ),
             ),
             const SizedBox(height: 12),
-            Text(
-              'Tindakan ini akan menghapus SEMUA $_totalComics judul komik, riwayat chapter, dan status bacaan.\n\nTidak dapat dibatalkan!',
-              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Text(
+                  'Tindakan ini akan menghapus SEMUA $_totalComics judul komik, riwayat chapter, dan status bacaan.\n\nTidak dapat dibatalkan!',
+                  style: const TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 13, height: 1.4),
+                ),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal', style: TextStyle(color: AppTheme.textSecondary)),
+            child: const Text('Batal',
+                style: TextStyle(color: AppTheme.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryAccent,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus Semua', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Hapus Semua',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -417,21 +450,24 @@ class _StorageScreenState extends State<StorageScreen>
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppTheme.textSecondary),
+            icon: const Icon(Icons.refresh_rounded,
+                color: AppTheme.textSecondary),
             tooltip: 'Segarkan',
             onPressed: _isLoading || _isCleaning ? null : _loadStorageData,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryAccent))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryAccent))
           : RefreshIndicator(
               color: AppTheme.primaryAccent,
               backgroundColor: AppTheme.surface1,
               onRefresh: _loadStorageData,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 children: [
                   _buildVisualStorageSection(),
                   const SizedBox(height: 20),
@@ -458,17 +494,22 @@ class _StorageScreenState extends State<StorageScreen>
         children: [
           Row(
             children: [
-              const Icon(Icons.pie_chart_outline_rounded, color: AppTheme.primaryAccent, size: 20),
+              const Icon(Icons.pie_chart_outline_rounded,
+                  color: AppTheme.primaryAccent, size: 20),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
                   'Alokasi Penyimpanan',
-                  style: TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700),
                 ),
               ),
               Text(
                 'App: ${_formatBytes(_databaseBytes + _cacheBytes)}',
-                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 12),
               ),
             ],
           ),
@@ -482,7 +523,8 @@ class _StorageScreenState extends State<StorageScreen>
                 builder: (context, constraints) {
                   final totalWidth = constraints.maxWidth;
                   final anim = _barAnimation.value;
-                  final totalBytes = _databaseBytes + _cacheBytes + _availableBytes;
+                  final totalBytes =
+                      _databaseBytes + _cacheBytes + _availableBytes;
                   final safeTotal = totalBytes > 0 ? totalBytes : 1;
 
                   double dbW = (_databaseBytes / safeTotal) * totalWidth;
@@ -505,11 +547,15 @@ class _StorageScreenState extends State<StorageScreen>
                       child: Row(
                         children: [
                           if (_databaseBytes > 0)
-                            Container(width: dbW * anim, color: AppTheme.reading),
+                            Container(
+                                width: dbW * anim, color: AppTheme.reading),
                           if (_cacheBytes > 0)
-                            Container(width: cacheW * anim, color: AppTheme.planToRead),
+                            Container(
+                                width: cacheW * anim,
+                                color: AppTheme.planToRead),
                           if (availW > 0)
-                            Expanded(child: Container(color: AppTheme.surface2)),
+                            Expanded(
+                                child: Container(color: AppTheme.surface2)),
                         ],
                       ),
                     ),
@@ -524,9 +570,12 @@ class _StorageScreenState extends State<StorageScreen>
             spacing: 16,
             runSpacing: 10,
             children: [
-              _legendDot(AppTheme.reading, 'Database', _formatBytes(_databaseBytes)),
-              _legendDot(AppTheme.planToRead, 'Cache', _formatBytes(_cacheBytes)),
-              _legendDot(const Color(0xFF2D333B), 'Tersedia', _formatBytes(_availableBytes)),
+              _legendDot(
+                  AppTheme.reading, 'Database', _formatBytes(_databaseBytes)),
+              _legendDot(
+                  AppTheme.planToRead, 'Cache', _formatBytes(_cacheBytes)),
+              _legendDot(const Color(0xFF2D333B), 'Tersedia',
+                  _formatBytes(_availableBytes)),
             ],
           ),
         ],
@@ -548,8 +597,14 @@ class _StorageScreenState extends State<StorageScreen>
           ),
         ),
         const SizedBox(width: 6),
-        Text('$label: ', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-        Text(size, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 12, fontWeight: FontWeight.w700)),
+        Text('$label: ',
+            style:
+                const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+        Text(size,
+            style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.w700)),
       ],
     );
   }
@@ -570,15 +625,24 @@ class _StorageScreenState extends State<StorageScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Statistik Database',
-              style: TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w700)),
+              style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700)),
           const SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: _statItem(Icons.menu_book_rounded, AppTheme.reading, '$_totalComics', 'Judul Komik')),
+              Expanded(
+                  child: _statItem(Icons.menu_book_rounded, AppTheme.reading,
+                      '$_totalComics', 'Judul Komik')),
               Container(width: 1, height: 44, color: AppTheme.border),
-              Expanded(child: _statItem(Icons.auto_stories_rounded, AppTheme.planToRead, chapterText, 'Total Chapter')),
+              Expanded(
+                  child: _statItem(Icons.auto_stories_rounded,
+                      AppTheme.planToRead, chapterText, 'Total Chapter')),
               Container(width: 1, height: 44, color: AppTheme.border),
-              Expanded(child: _statItem(Icons.storage_rounded, AppTheme.completed, _formatBytes(_databaseBytes), 'File DB')),
+              Expanded(
+                  child: _statItem(Icons.storage_rounded, AppTheme.completed,
+                      _formatBytes(_databaseBytes), 'File DB')),
             ],
           ),
         ],
@@ -591,9 +655,14 @@ class _StorageScreenState extends State<StorageScreen>
       children: [
         Icon(icon, color: color, size: 20),
         const SizedBox(height: 6),
-        Text(value, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w700)),
+        Text(value,
+            style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w700)),
         const SizedBox(height: 2),
-        Text(label, textAlign: TextAlign.center,
+        Text(label,
+            textAlign: TextAlign.center,
             style: const TextStyle(color: AppTheme.textMuted, fontSize: 11)),
       ],
     );
@@ -604,7 +673,10 @@ class _StorageScreenState extends State<StorageScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Pembersihan & Pengelolaan',
-            style: TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w700)),
+            style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
@@ -640,33 +712,44 @@ class _StorageScreenState extends State<StorageScreen>
               ),
               const Divider(height: 1, color: AppTheme.border),
               ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 leading: Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: AppTheme.surface2,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.info_outline_rounded, color: AppTheme.textSecondary, size: 20),
+                  child: const Icon(Icons.info_outline_rounded,
+                      color: AppTheme.textSecondary, size: 20),
                 ),
                 title: const Text('Info Database',
-                    style: TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+                    style: TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 4),
                     Text(
                       _dbPath.isNotEmpty ? _dbPath : 'Belum dimuat',
-                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 11),
+                      style: const TextStyle(
+                          color: AppTheme.textMuted, fontSize: 11),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text('Ukuran: ${_formatBytes(_databaseBytes)}',
-                        style: const TextStyle(color: AppTheme.completed, fontSize: 12, fontWeight: FontWeight.w500)),
+                        style: const TextStyle(
+                            color: AppTheme.completed,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500)),
                   ],
                 ),
                 trailing: IconButton(
-                  icon: const Icon(Icons.copy_rounded, color: AppTheme.textSecondary, size: 20),
+                  icon: const Icon(Icons.copy_rounded,
+                      color: AppTheme.textSecondary, size: 20),
                   onPressed: _dbPath.isNotEmpty ? _copyDbPath : null,
                 ),
                 onTap: _dbPath.isNotEmpty ? _copyDbPath : null,
@@ -689,7 +772,8 @@ class _StorageScreenState extends State<StorageScreen>
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
-        width: 40, height: 40,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: iconColor.withOpacity(0.15),
           borderRadius: BorderRadius.circular(10),
@@ -697,9 +781,14 @@ class _StorageScreenState extends State<StorageScreen>
         child: Icon(icon, color: iconColor, size: 20),
       ),
       title: Text(title,
-          style: TextStyle(color: titleColor ?? AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
-      subtitle: Text(subtitle, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-      trailing: Icon(Icons.chevron_right_rounded, color: titleColor ?? AppTheme.textMuted),
+          style: TextStyle(
+              color: titleColor ?? AppTheme.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w600)),
+      subtitle: Text(subtitle,
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+      trailing: Icon(Icons.chevron_right_rounded,
+          color: titleColor ?? AppTheme.textMuted),
       onTap: onTap,
     );
   }
