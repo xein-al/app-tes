@@ -1,17 +1,18 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme.dart';
 import '../models/comic.dart';
 import '../db/database_helper.dart';
+import '../utils/id_generator.dart';
 
 class QuickAddSheet extends StatefulWidget {
   final VoidCallback onSaved;
 
   const QuickAddSheet({super.key, required this.onSaved});
 
-  static Future<void> show(BuildContext context, {required VoidCallback onSaved}) {
+  static Future<void> show(BuildContext context,
+      {required VoidCallback onSaved}) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -70,7 +71,7 @@ class _QuickAddSheetState extends State<QuickAddSheet>
 
     final now = DateTime.now().millisecondsSinceEpoch;
     final comic = Comic(
-      id: '${now}_${Random().nextInt(99999)}',
+      id: IdGenerator.generate(),
       title: _titleCtrl.text.trim(),
       alias: _aliasCtrl.text.trim().isEmpty ? null : _aliasCtrl.text.trim(),
       type: _selectedType,
@@ -143,7 +144,8 @@ class _QuickAddSheetState extends State<QuickAddSheet>
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Row(
                 children: [
-                  Icon(Icons.add_circle_outline, color: AppTheme.primaryAccent, size: 22),
+                  Icon(Icons.add_circle_outline,
+                      color: AppTheme.primaryAccent, size: 22),
                   SizedBox(width: 10),
                   Text(
                     'Tambah Komik Baru',
@@ -226,9 +228,12 @@ class _QuickAddSheetState extends State<QuickAddSheet>
             style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
             decoration: const InputDecoration(
               hintText: 'Contoh: Solo Leveling',
-              prefixIcon: Icon(Icons.book_outlined, color: AppTheme.textMuted, size: 20),
+              prefixIcon: Icon(Icons.book_outlined,
+                  color: AppTheme.textMuted, size: 20),
             ),
-            validator: (v) => (v == null || v.trim().isEmpty) ? 'Judul tidak boleh kosong' : null,
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? 'Judul tidak boleh kosong'
+                : null,
             textInputAction: TextInputAction.next,
           ),
           const SizedBox(height: 14),
@@ -241,7 +246,8 @@ class _QuickAddSheetState extends State<QuickAddSheet>
             style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
             decoration: const InputDecoration(
               hintText: 'Nama alternatif (opsional)',
-              prefixIcon: Icon(Icons.label_outline, color: AppTheme.textMuted, size: 20),
+              prefixIcon: Icon(Icons.label_outline,
+                  color: AppTheme.textMuted, size: 20),
             ),
             textInputAction: TextInputAction.next,
           ),
@@ -269,8 +275,10 @@ class _QuickAddSheetState extends State<QuickAddSheet>
                           value: _selectedType,
                           isExpanded: true,
                           dropdownColor: AppTheme.surface2,
-                          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
-                          icon: const Icon(Icons.expand_more, color: AppTheme.textMuted, size: 20),
+                          style: const TextStyle(
+                              color: AppTheme.textPrimary, fontSize: 14),
+                          icon: const Icon(Icons.expand_more,
+                              color: AppTheme.textMuted, size: 20),
                           items: ['manhwa', 'manga', 'manhua'].map((t) {
                             return DropdownMenuItem(
                               value: t,
@@ -302,12 +310,15 @@ class _QuickAddSheetState extends State<QuickAddSheet>
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _totalCtrl,
-                      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                      style: const TextStyle(
+                          color: AppTheme.textPrimary, fontSize: 14),
                       decoration: const InputDecoration(
                         hintText: 'Opsional',
-                        prefixIcon: Icon(Icons.tag, color: AppTheme.textMuted, size: 20),
+                        prefixIcon: Icon(Icons.tag,
+                            color: AppTheme.textMuted, size: 20),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
                       textInputAction: TextInputAction.next,
                     ),
                   ],
@@ -325,7 +336,8 @@ class _QuickAddSheetState extends State<QuickAddSheet>
             style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
             decoration: const InputDecoration(
               hintText: 'https://... (opsional)',
-              prefixIcon: Icon(Icons.image_outlined, color: AppTheme.textMuted, size: 20),
+              prefixIcon: Icon(Icons.image_outlined,
+                  color: AppTheme.textMuted, size: 20),
             ),
             keyboardType: TextInputType.url,
             textInputAction: TextInputAction.next,
@@ -346,7 +358,8 @@ class _QuickAddSheetState extends State<QuickAddSheet>
                 child: OutlinedButton.icon(
                   onPressed: _saving ? null : () => _save(andContinue: true),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Tambah & Lanjut', style: TextStyle(fontSize: 13)),
+                  label: const Text('Tambah & Lanjut',
+                      style: TextStyle(fontSize: 13)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.textPrimary,
                     side: const BorderSide(color: AppTheme.border),
@@ -374,7 +387,8 @@ class _QuickAddSheetState extends State<QuickAddSheet>
                       : const Icon(Icons.check, size: 18),
                   label: Text(
                     _saving ? 'Menyimpan...' : 'Simpan',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryAccent,

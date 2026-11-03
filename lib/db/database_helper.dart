@@ -126,7 +126,8 @@ class DatabaseHelper {
       whereArgs.add(query);
     }
 
-    final whereString = whereClauses.isNotEmpty ? whereClauses.join(' AND ') : null;
+    final whereString =
+        whereClauses.isNotEmpty ? whereClauses.join(' AND ') : null;
 
     String orderBy;
     switch (sortOption) {
@@ -174,7 +175,6 @@ class DatabaseHelper {
     final updated = comic.copyWith(
       currentChapter: newChapter,
       status: isCompleted ? 'completed' : comic.status,
-      updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
     await updateComic(updated);
     return updated;
@@ -188,7 +188,6 @@ class DatabaseHelper {
     final newChapter = (comic.currentChapter - 1).clamp(0.0, double.infinity);
     final updated = comic.copyWith(
       currentChapter: newChapter,
-      updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
     await updateComic(updated);
     return updated;
@@ -207,7 +206,6 @@ class DatabaseHelper {
     final updated = comic.copyWith(
       currentChapter: validChapter,
       status: isCompleted ? 'completed' : comic.status,
-      updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
     await updateComic(updated);
     return updated;
@@ -248,7 +246,8 @@ class DatabaseHelper {
 
   Future<int> getReadingStreak() async {
     final db = await database;
-    final results = await db.rawQuery('SELECT updated_at FROM comics ORDER BY updated_at DESC');
+    final results = await db
+        .rawQuery('SELECT updated_at FROM comics ORDER BY updated_at DESC');
     if (results.isEmpty) return 0;
 
     final dates = <DateTime>{};
@@ -286,13 +285,17 @@ class DatabaseHelper {
   Future<Map<String, dynamic>> getStats() async {
     final db = await database;
 
-    final totalResult = await db.rawQuery('SELECT COUNT(*) as total FROM comics');
+    final totalResult =
+        await db.rawQuery('SELECT COUNT(*) as total FROM comics');
     final totalComics = (totalResult.first['total'] as num?)?.toInt() ?? 0;
 
-    final chaptersResult = await db.rawQuery('SELECT SUM(current_chapter) as total_chapters FROM comics');
-    final totalChaptersRead = (chaptersResult.first['total_chapters'] as num?)?.toDouble() ?? 0.0;
+    final chaptersResult = await db
+        .rawQuery('SELECT SUM(current_chapter) as total_chapters FROM comics');
+    final totalChaptersRead =
+        (chaptersResult.first['total_chapters'] as num?)?.toDouble() ?? 0.0;
 
-    final double avgChaptersPerComic = totalComics > 0 ? (totalChaptersRead / totalComics) : 0.0;
+    final double avgChaptersPerComic =
+        totalComics > 0 ? (totalChaptersRead / totalComics) : 0.0;
 
     final streak = await getReadingStreak();
 
@@ -301,7 +304,11 @@ class DatabaseHelper {
       FROM comics 
       GROUP BY type
     ''');
-    final typeDistribution = <String, int>{'manga': 0, 'manhwa': 0, 'manhua': 0};
+    final typeDistribution = <String, int>{
+      'manga': 0,
+      'manhwa': 0,
+      'manhua': 0
+    };
     for (final row in typeResult) {
       final t = (row['type'] as String).toLowerCase();
       if (typeDistribution.containsKey(t)) {
@@ -368,7 +375,8 @@ class DatabaseHelper {
 
   // ─── Import & Restore ───────────────────────────────────────────────────────
 
-  Future<int> importFromJsonString(String jsonString, {bool replaceExisting = false}) async {
+  Future<int> importFromJsonString(String jsonString,
+      {bool replaceExisting = false}) async {
     final dynamic decoded = jsonDecode(jsonString);
     List<dynamic> comicMaps = [];
 

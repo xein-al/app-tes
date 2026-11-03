@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 import '../theme.dart';
 import '../models/comic.dart';
 import '../db/database_helper.dart';
+import '../utils/id_generator.dart';
 
 class KotatsuImportSheet extends StatefulWidget {
   const KotatsuImportSheet({super.key});
@@ -101,7 +101,8 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
           rawEntries = [decoded];
         }
       } else {
-        throw const FormatException('Format JSON tidak sesuai array atau object.');
+        throw const FormatException(
+            'Format JSON tidak sesuai array atau object.');
       }
 
       final List<Comic> comics = [];
@@ -146,13 +147,17 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
     final tagsRaw = manga['tags'] as List?;
     final tags = tagsRaw != null
         ? tagsRaw
-            .map((t) => (t is Map ? (t['title'] as String? ?? '') : '').toLowerCase())
+            .map((t) =>
+                (t is Map ? (t['title'] as String? ?? '') : '').toLowerCase())
             .toList()
         : <String>[];
 
     if (source.contains('manhwa') ||
         source.contains('webtoon') ||
-        tags.any((t) => t.contains('manhwa') || t.contains('webtoon') || t.contains('korean'))) {
+        tags.any((t) =>
+            t.contains('manhwa') ||
+            t.contains('webtoon') ||
+            t.contains('korean'))) {
       type = 'manhwa';
     } else if (source.contains('manhua') ||
         tags.any((t) => t.contains('manhua') || t.contains('chinese'))) {
@@ -160,7 +165,8 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
     }
 
     final bool isHistory = mode == 'history' ||
-        (mode == 'auto' && (entry.containsKey('percent') || entry.containsKey('chapter_id')));
+        (mode == 'auto' &&
+            (entry.containsKey('percent') || entry.containsKey('chapter_id')));
 
     // Status mapping
     String status = 'reading';
@@ -197,7 +203,8 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
     }
 
     double? totalChapters;
-    if (entry.containsKey('chapters') && (entry['chapters'] as num?)?.toDouble() != null) {
+    if (entry.containsKey('chapters') &&
+        (entry['chapters'] as num?)?.toDouble() != null) {
       totalChapters = (entry['chapters'] as num).toDouble();
       if (totalChapters <= 0) totalChapters = null;
     }
@@ -209,7 +216,7 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
 
     final id = manga['id']?.toString() ??
         entry['manga_id']?.toString() ??
-        '${now}_${math.Random().nextInt(99999)}';
+        IdGenerator.generate();
 
     return Comic(
       id: id,
@@ -323,7 +330,8 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
                       color: AppTheme.primaryAccent.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.import_contacts_rounded, color: AppTheme.primaryAccent, size: 20),
+                    child: const Icon(Icons.import_contacts_rounded,
+                        color: AppTheme.primaryAccent, size: 20),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -332,17 +340,22 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
                       children: [
                         Text(
                           'Impor dari Kotatsu',
-                          style: TextStyle(color: AppTheme.textPrimary, fontSize: 18, fontWeight: FontWeight.w700),
+                          style: TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700),
                         ),
                         Text(
                           'Tempel JSON dari backup Kotatsu-Redo (.bk.zip)',
-                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                          style: TextStyle(
+                              color: AppTheme.textSecondary, fontSize: 12),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: AppTheme.textMuted),
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppTheme.textMuted),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -351,7 +364,8 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
             const Divider(color: AppTheme.border, height: 16),
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -367,11 +381,13 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
                         decoration: BoxDecoration(
                           color: AppTheme.primaryAccent.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppTheme.primaryAccent.withOpacity(0.3)),
+                          border: Border.all(
+                              color: AppTheme.primaryAccent.withOpacity(0.3)),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline_rounded, color: AppTheme.primaryAccent, size: 18),
+                            const Icon(Icons.error_outline_rounded,
+                                color: AppTheme.primaryAccent, size: 18),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -391,11 +407,13 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
                     AnimatedBuilder(
                       animation: _previewAnimation,
                       builder: (context, child) {
-                        if (_parsedComics.isEmpty) return const SizedBox.shrink();
+                        if (_parsedComics.isEmpty)
+                          return const SizedBox.shrink();
                         return Opacity(
                           opacity: _previewAnimation.value,
                           child: Transform.translate(
-                            offset: Offset(0, (1.0 - _previewAnimation.value) * 10),
+                            offset:
+                                Offset(0, (1.0 - _previewAnimation.value) * 10),
                             child: _buildPreviewSection(),
                           ),
                         );
@@ -419,7 +437,10 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
       children: [
         const Text(
           'Format Data Backup',
-          style: TextStyle(color: AppTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+          style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -446,7 +467,9 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryAccent.withOpacity(0.15) : AppTheme.surface2,
+          color: isSelected
+              ? AppTheme.primaryAccent.withOpacity(0.15)
+              : AppTheme.surface2,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected ? AppTheme.primaryAccent : AppTheme.border,
@@ -456,12 +479,18 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: isSelected ? AppTheme.primaryAccent : AppTheme.textSecondary),
+            Icon(icon,
+                size: 16,
+                color: isSelected
+                    ? AppTheme.primaryAccent
+                    : AppTheme.textSecondary),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? AppTheme.primaryAccent : AppTheme.textSecondary,
+                color: isSelected
+                    ? AppTheme.primaryAccent
+                    : AppTheme.textSecondary,
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
@@ -482,7 +511,10 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
           children: [
             const Text(
               'Isi JSON Kotatsu',
-              style: TextStyle(color: AppTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600),
             ),
             Row(
               children: [
@@ -515,18 +547,29 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
           focusNode: _focusNode,
           maxLines: 5,
           minLines: 3,
-          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 12, fontFamily: 'monospace'),
+          style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 12,
+              fontFamily: 'monospace'),
           decoration: InputDecoration(
             hintText: '[\n  {\n    "manga": { "title": "Horimiya" }\n  }\n]',
-            hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 12, fontFamily: 'monospace'),
+            hintStyle: const TextStyle(
+                color: AppTheme.textMuted,
+                fontSize: 12,
+                fontFamily: 'monospace'),
             filled: true,
             fillColor: AppTheme.surface2,
             contentPadding: const EdgeInsets.all(12),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.border)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppTheme.border)),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppTheme.border)),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppTheme.border)),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppTheme.primaryAccent, width: 1.5),
+              borderSide:
+                  const BorderSide(color: AppTheme.primaryAccent, width: 1.5),
             ),
           ),
         ),
@@ -550,14 +593,18 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
               children: [
                 const Text(
                   'Ganti data yang ada',
-                  style: TextStyle(color: AppTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   _replaceExisting
                       ? 'Hapus seluruh data komik saat ini sebelum impor'
                       : 'Gabungkan data baru dengan komik yang ada (merge)',
-                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11),
+                  style: const TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 11),
                 ),
               ],
             ),
@@ -588,11 +635,15 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
         children: [
           Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: AppTheme.completed, size: 18),
+              const Icon(Icons.check_circle_rounded,
+                  color: AppTheme.completed, size: 18),
               const SizedBox(width: 8),
               Text(
                 '${_parsedComics.length} komik terdeteksi',
-                style: const TextStyle(color: AppTheme.completed, fontSize: 14, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                    color: AppTheme.completed,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -601,7 +652,8 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: previewItems.length,
-            separatorBuilder: (_, __) => const Divider(color: AppTheme.border, height: 12),
+            separatorBuilder: (_, __) =>
+                const Divider(color: AppTheme.border, height: 12),
             itemBuilder: (context, index) {
               final comic = previewItems[index];
               return Row(
@@ -612,13 +664,15 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
                       width: 32,
                       height: 44,
                       color: AppTheme.surface1,
-                      child: comic.coverUrl != null && comic.coverUrl!.isNotEmpty
-                          ? Image.network(
-                              comic.coverUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildPlaceholderInitial(comic.title),
-                            )
-                          : _buildPlaceholderInitial(comic.title),
+                      child:
+                          comic.coverUrl != null && comic.coverUrl!.isNotEmpty
+                              ? Image.network(
+                                  comic.coverUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      _buildPlaceholderInitial(comic.title),
+                                )
+                              : _buildPlaceholderInitial(comic.title),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -628,7 +682,10 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
                       children: [
                         Text(
                           comic.title,
-                          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -642,7 +699,10 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
                               const SizedBox(width: 6),
                               Text(
                                 'Ch. ${comic.currentChapter % 1 == 0 ? comic.currentChapter.toInt() : comic.currentChapter.toStringAsFixed(1)}',
-                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500),
                               ),
                             ],
                           ],
@@ -658,7 +718,10 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
             const SizedBox(height: 8),
             Text(
               '... dan $remainingCount komik lainnya',
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 11, fontStyle: FontStyle.italic),
+              style: const TextStyle(
+                  color: AppTheme.textMuted,
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic),
             ),
           ],
         ],
@@ -667,11 +730,15 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
   }
 
   Widget _buildPlaceholderInitial(String title) {
-    final initial = title.trim().isNotEmpty ? title.trim()[0].toUpperCase() : '?';
+    final initial =
+        title.trim().isNotEmpty ? title.trim()[0].toUpperCase() : '?';
     return Center(
       child: Text(
         initial,
-        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: AppTheme.textSecondary,
+            fontSize: 14,
+            fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -685,7 +752,8 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
       ),
       child: Text(
         label,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600),
+        style:
+            TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -707,9 +775,11 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
             disabledBackgroundColor: AppTheme.surface2,
             disabledForegroundColor: AppTheme.textMuted,
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          onPressed: _parsedComics.isEmpty || _isImporting ? null : _importComics,
+          onPressed:
+              _parsedComics.isEmpty || _isImporting ? null : _importComics,
           child: _isImporting
               ? const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -717,10 +787,12 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
                     SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     ),
                     SizedBox(width: 10),
-                    Text('Mengimpor komik...', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text('Mengimpor komik...',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
                   ],
                 )
               : Row(
@@ -732,7 +804,8 @@ class _KotatsuImportSheetState extends State<KotatsuImportSheet>
                       _parsedComics.isEmpty
                           ? 'Impor Komik'
                           : 'Impor ${_parsedComics.length} Komik',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),

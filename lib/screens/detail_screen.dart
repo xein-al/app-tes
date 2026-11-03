@@ -75,7 +75,8 @@ class _DetailScreenState extends State<DetailScreen>
   }
 
   Future<void> _loadComic() async {
-    final id = widget.comicId ?? (ModalRoute.of(context)?.settings.arguments as String?);
+    final id = widget.comicId ??
+        (ModalRoute.of(context)?.settings.arguments as String?);
     if (id == null) {
       setState(() => _loading = false);
       return;
@@ -143,7 +144,6 @@ class _DetailScreenState extends State<DetailScreen>
       status: autoCompleted ? 'completed' : _status,
       type: _type,
       rating: _rating > 0 ? _rating : null,
-      updatedAt: DateTime.now().millisecondsSinceEpoch,
     );
 
     await DatabaseHelper.instance.updateComic(updated);
@@ -183,7 +183,9 @@ class _DetailScreenState extends State<DetailScreen>
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surface2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hapus Komik?', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
+        title: const Text('Hapus Komik?',
+            style: TextStyle(
+                color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
         content: Text(
           'Hapus "${_comic!.title}" secara permanen?',
           style: const TextStyle(color: AppTheme.textSecondary),
@@ -191,7 +193,8 @@ class _DetailScreenState extends State<DetailScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal', style: TextStyle(color: AppTheme.textSecondary)),
+            child: const Text('Batal',
+                style: TextStyle(color: AppTheme.textSecondary)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -217,7 +220,8 @@ class _DetailScreenState extends State<DetailScreen>
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+              color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
         ),
         backgroundColor: AppTheme.surface2,
         behavior: SnackBarBehavior.floating,
@@ -240,8 +244,18 @@ class _DetailScreenState extends State<DetailScreen>
   String _formatDate(int ms) {
     final dt = DateTime.fromMillisecondsSinceEpoch(ms);
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des'
     ];
     final hour = dt.hour.toString().padLeft(2, '0');
     final min = dt.minute.toString().padLeft(2, '0');
@@ -320,10 +334,13 @@ class _DetailScreenState extends State<DetailScreen>
                   Center(
                     child: TextButton.icon(
                       onPressed: _confirmDelete,
-                      icon: const Icon(Icons.delete_outline, color: AppTheme.primaryAccent, size: 20),
+                      icon: const Icon(Icons.delete_outline,
+                          color: AppTheme.primaryAccent, size: 20),
                       label: const Text(
                         'Hapus Komik Ini',
-                        style: TextStyle(color: AppTheme.primaryAccent, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                            color: AppTheme.primaryAccent,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
@@ -345,7 +362,8 @@ class _DetailScreenState extends State<DetailScreen>
             backgroundColor: AppTheme.primaryAccent,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.save_rounded),
-            label: const Text('Simpan Perubahan', style: TextStyle(fontWeight: FontWeight.bold)),
+            label: const Text('Simpan Perubahan',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ),
       ),
@@ -423,7 +441,8 @@ class _DetailScreenState extends State<DetailScreen>
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: AppTheme.surface2,
                           borderRadius: BorderRadius.circular(6),
@@ -441,11 +460,13 @@ class _DetailScreenState extends State<DetailScreen>
                       const SizedBox(width: 8),
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 3),
                         decoration: BoxDecoration(
                           color: AppTheme.statusColor(_status).withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppTheme.statusColor(_status)),
+                          border:
+                              Border.all(color: AppTheme.statusColor(_status)),
                         ),
                         child: Text(
                           AppTheme.statusLabel(_status),
@@ -460,7 +481,9 @@ class _DetailScreenState extends State<DetailScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _titleCtrl.text.isNotEmpty ? _titleCtrl.text : _comic!.title,
+                    _titleCtrl.text.isNotEmpty
+                        ? _titleCtrl.text
+                        : _comic!.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -480,7 +503,9 @@ class _DetailScreenState extends State<DetailScreen>
   }
 
   Widget _buildCoverHeaderImage() {
-    final url = _coverCtrl.text.trim().isNotEmpty ? _coverCtrl.text.trim() : _comic!.coverUrl;
+    final url = _coverCtrl.text.trim().isNotEmpty
+        ? _coverCtrl.text.trim()
+        : _comic!.coverUrl;
     if (url != null && url.isNotEmpty) {
       return Image.network(
         url,
@@ -620,22 +645,31 @@ class _DetailScreenState extends State<DetailScreen>
                           foregroundColor: AppTheme.textPrimary,
                           side: const BorderSide(color: AppTheme.border),
                           padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: () async {
-                          final ctrl = TextEditingController(text: _formatChapter(_currentChapter));
+                          final ctrl = TextEditingController(
+                              text: _formatChapter(_currentChapter));
                           final result = await showDialog<double>(
                             context: context,
                             builder: (ctx) => AlertDialog(
                               backgroundColor: AppTheme.surface2,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              title: const Text('Input Chapter', style: TextStyle(color: AppTheme.textPrimary)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                              title: const Text('Input Chapter',
+                                  style:
+                                      TextStyle(color: AppTheme.textPrimary)),
                               content: TextField(
                                 controller: ctrl,
                                 autofocus: true,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                style: const TextStyle(color: AppTheme.textPrimary),
-                                decoration: const InputDecoration(labelText: 'Chapter'),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        decimal: true),
+                                style: const TextStyle(
+                                    color: AppTheme.textPrimary),
+                                decoration:
+                                    const InputDecoration(labelText: 'Chapter'),
                               ),
                               actions: [
                                 TextButton(
@@ -643,9 +677,12 @@ class _DetailScreenState extends State<DetailScreen>
                                   child: const Text('Batal'),
                                 ),
                                 ElevatedButton(
-                                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryAccent),
-                                  onPressed: () => Navigator.pop(ctx, double.tryParse(ctrl.text.trim())),
-                                  child: const Text('OK', style: TextStyle(color: Colors.white)),
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryAccent),
+                                  onPressed: () => Navigator.pop(
+                                      ctx, double.tryParse(ctrl.text.trim())),
+                                  child: const Text('OK',
+                                      style: TextStyle(color: Colors.white)),
                                 ),
                               ],
                             ),
@@ -654,7 +691,8 @@ class _DetailScreenState extends State<DetailScreen>
                             setState(() => _currentChapter = result);
                           }
                         },
-                        child: const Text('Edit', style: TextStyle(fontSize: 12)),
+                        child:
+                            const Text('Edit', style: TextStyle(fontSize: 12)),
                       ),
                     ),
                   ],
@@ -679,16 +717,21 @@ class _DetailScreenState extends State<DetailScreen>
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: disabled ? AppTheme.surface2.withOpacity(0.5) : AppTheme.surface2,
+          color:
+              disabled ? AppTheme.surface2.withOpacity(0.5) : AppTheme.surface2,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: disabled ? AppTheme.border.withOpacity(0.5) : AppTheme.border),
+          border: Border.all(
+              color: disabled
+                  ? AppTheme.border.withOpacity(0.5)
+                  : AppTheme.border),
         ),
         child: Center(
           child: label != null
               ? Text(
                   label,
                   style: TextStyle(
-                    color: disabled ? AppTheme.textMuted : AppTheme.primaryAccent,
+                    color:
+                        disabled ? AppTheme.textMuted : AppTheme.primaryAccent,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
@@ -745,9 +788,12 @@ class _DetailScreenState extends State<DetailScreen>
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSelected ? color.withOpacity(0.18) : AppTheme.surface2,
+                    color: isSelected
+                        ? color.withOpacity(0.18)
+                        : AppTheme.surface2,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isSelected ? color : AppTheme.border,
@@ -770,7 +816,8 @@ class _DetailScreenState extends State<DetailScreen>
                         s.$2,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w500,
                           color: isSelected ? color : AppTheme.textSecondary,
                         ),
                       ),
@@ -810,7 +857,9 @@ class _DetailScreenState extends State<DetailScreen>
               ),
               const SizedBox(height: 4),
               Text(
-                _rating > 0 ? '${_rating.toStringAsFixed(1)} / 5.0' : 'Belum dinilai',
+                _rating > 0
+                    ? '${_rating.toStringAsFixed(1)} / 5.0'
+                    : 'Belum dinilai',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -892,7 +941,8 @@ class _DetailScreenState extends State<DetailScreen>
             style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
             decoration: const InputDecoration(
               hintText: 'Judul komik...',
-              prefixIcon: Icon(Icons.title, color: AppTheme.textMuted, size: 20),
+              prefixIcon:
+                  Icon(Icons.title, color: AppTheme.textMuted, size: 20),
             ),
           ),
           const SizedBox(height: 14),
@@ -905,7 +955,8 @@ class _DetailScreenState extends State<DetailScreen>
             style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
             decoration: const InputDecoration(
               hintText: 'Alias (opsional)...',
-              prefixIcon: Icon(Icons.label_outline, color: AppTheme.textMuted, size: 20),
+              prefixIcon: Icon(Icons.label_outline,
+                  color: AppTheme.textMuted, size: 20),
             ),
           ),
           const SizedBox(height: 14),
@@ -932,8 +983,10 @@ class _DetailScreenState extends State<DetailScreen>
                           value: _type,
                           isExpanded: true,
                           dropdownColor: AppTheme.surface2,
-                          style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
-                          icon: const Icon(Icons.expand_more, color: AppTheme.textMuted),
+                          style: const TextStyle(
+                              color: AppTheme.textPrimary, fontSize: 14),
+                          icon: const Icon(Icons.expand_more,
+                              color: AppTheme.textMuted),
                           items: ['manhwa', 'manga', 'manhua'].map((t) {
                             return DropdownMenuItem(
                               value: t,
@@ -959,11 +1012,14 @@ class _DetailScreenState extends State<DetailScreen>
                     const SizedBox(height: 6),
                     TextField(
                       controller: _totalChaptersCtrl,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      style: const TextStyle(
+                          color: AppTheme.textPrimary, fontSize: 14),
                       decoration: const InputDecoration(
                         hintText: 'Opsional',
-                        prefixIcon: Icon(Icons.tag, color: AppTheme.textMuted, size: 20),
+                        prefixIcon: Icon(Icons.tag,
+                            color: AppTheme.textMuted, size: 20),
                       ),
                     ),
                   ],
@@ -981,7 +1037,8 @@ class _DetailScreenState extends State<DetailScreen>
             style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
             decoration: const InputDecoration(
               hintText: 'https://...',
-              prefixIcon: Icon(Icons.image_outlined, color: AppTheme.textMuted, size: 20),
+              prefixIcon: Icon(Icons.image_outlined,
+                  color: AppTheme.textMuted, size: 20),
             ),
           ),
         ],
@@ -1013,9 +1070,11 @@ class _DetailScreenState extends State<DetailScreen>
           TextField(
             controller: _notesCtrl,
             maxLines: 4,
-            style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14, height: 1.4),
+            style: const TextStyle(
+                color: AppTheme.textPrimary, fontSize: 14, height: 1.4),
             decoration: const InputDecoration(
-              hintText: 'Tulis catatan, sinopsis singkat, atau pengingat chapter di sini...',
+              hintText:
+                  'Tulis catatan, sinopsis singkat, atau pengingat chapter di sini...',
               alignLabelWithHint: true,
             ),
           ),
@@ -1045,9 +1104,11 @@ class _DetailScreenState extends State<DetailScreen>
             ),
           ),
           const SizedBox(height: 12),
-          _buildMetaRow(Icons.access_time, 'Terakhir Dibaca', _formatDate(_comic!.updatedAt)),
+          _buildMetaRow(Icons.access_time, 'Terakhir Dibaca',
+              _formatDate(_comic!.updatedAt)),
           const SizedBox(height: 8),
-          _buildMetaRow(Icons.calendar_today, 'Ditambahkan', _formatDate(_comic!.createdAt)),
+          _buildMetaRow(Icons.calendar_today, 'Ditambahkan',
+              _formatDate(_comic!.createdAt)),
         ],
       ),
     );
@@ -1065,7 +1126,10 @@ class _DetailScreenState extends State<DetailScreen>
         const Spacer(),
         Text(
           value,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+          style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textPrimary),
         ),
       ],
     );
