@@ -25,6 +25,7 @@ class _StorageScreenState extends State<StorageScreen>
   int _databaseBytes = 0;
   int _cacheBytes = 0;
   int _thumbnailBytes = 0;
+  int _backupBytes = 0;
   int _availableBytes = 0;
   String _dbPath = '';
 
@@ -142,6 +143,11 @@ class _StorageScreenState extends State<StorageScreen>
       final dbBytes = await _getDatabaseSize(dbPath);
       final availableBytes = await _getAvailableDiskSpace(tempDir.path);
 
+      // Get backup folder size
+      final appDir = await getApplicationDocumentsDirectory();
+      final backupDir = Directory(p.join(appDir.path, 'manga_backups'));
+      final backupBytes = await _getDirectorySize(backupDir);
+
       final stats = await DatabaseHelper.instance.getStats();
       final counts = await DatabaseHelper.instance.getStatusCounts();
 
@@ -150,6 +156,7 @@ class _StorageScreenState extends State<StorageScreen>
         _cacheBytes = cacheBytes;
         _thumbnailBytes = thumbBytes;
         _databaseBytes = dbBytes;
+        _backupBytes = backupBytes;
         _availableBytes = availableBytes;
         _dbPath = dbPath;
         _totalComics = counts['all'] ?? 0;
@@ -473,6 +480,8 @@ class _StorageScreenState extends State<StorageScreen>
                   const SizedBox(height: 20),
                   _buildDatabaseStatsSection(),
                   const SizedBox(height: 20),
+                  _buildBackupManagementCard(),
+                  const SizedBox(height: 20),
                   _buildActionsSection(),
                   const SizedBox(height: 32),
                 ],
@@ -646,6 +655,73 @@ class _StorageScreenState extends State<StorageScreen>
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBackupManagementCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface1,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primaryAccent.withOpacity(0.3)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () async {
+            await Navigator.pushNamed(context, '/backup-management');
+            _loadStorageData();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryAccent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.backup_rounded,
+                    color: AppTheme.primaryAccent,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Backup & Restore',
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Kelola backup ZIP • ${_formatBytes(_backupBytes)}',
+                        style: const TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppTheme.textMuted,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
